@@ -1,5 +1,8 @@
 import subprocess
+import sqlite3
 
+conn = sqlite3.connect('hadoop_hash_tag_date.db')
+cursor = conn.cursor()
 
 def make_dictionary_releasedate():
     git_tag_dict = {}
@@ -7,13 +10,14 @@ def make_dictionary_releasedate():
     git_autherdate_dict = {}
     result_dict = {}
 
-    # 通った
-    proc_ls = subprocess.Popen(['ls'], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    ls_byte = proc_ls.communicate()
-    print(type(ls_byte[0]))
-    ls_str = ls_byte[0].decode('utf-8')
+    # 通った(test block)
+#    proc_ls = subprocess.Popen(['ls'], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+#    ls_byte = proc_ls.communicate()
+#    print(type(ls_byte[0]))
+#    ls_str = ls_byte[0].decode('utf-8')
     # print(test_str)
-    print(ls_str.split('\n'))
+#    print(ls_str.split('\n'))
+    # ここまで
 
     # git tagコマンドによってタグを取得。tag_strにリスト構造で保存
     proc_tag = subprocess.Popen(['git', 'tag'], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -53,15 +57,15 @@ def make_dictionary_releasedate():
             git_autherdate_dict[tag_num] = adate_str.split('\n')[-2]
 #        print(adate_str.split('\n'))
         # ↓test print
-        print(git_autherdate_dict[tag_num])
-        print("---split---")
+#        print(git_autherdate_dict[tag_num])
+#        print("---split---")
+#    print(type(git_autherdate_dict))
 
-
-
-    for line in git_hash_dict:
-        result_dict[line] = subprocess.Popen(['git', 'show ', git_hash_dict[line_tag]])
 
     return result_dict
+
+def create_db():
+
 
 def print_git():
     print_dict = make_dictionary_releasedate()
