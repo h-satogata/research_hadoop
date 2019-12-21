@@ -4,6 +4,7 @@ import subprocess
 def make_dictionary_releasedate():
     git_tag_dict = {}
     git_hash_dict = {}
+    git_autherdate_dict = {}
     result_dict = {}
 
     # 通った
@@ -26,13 +27,34 @@ def make_dictionary_releasedate():
 
     # git showコマンドによってgit hashを取得
     for tag_num in range(0, len(git_tag_dict)-1):
-        proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', git_tag_dict[tag_num]], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', git_tag_dict[tag_num]], cwd='./hadoop/',
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         hash_byte = proc_hash.communicate()
         hash_str = hash_byte[0].decode('utf-8')
-        git_hash_dict[tag_num] = hash_str.split('\n')[-2]
-        # ↓testcode
+        # warning対策
+        if 'warning: you may want to set your diff.renameLimit variable' in hash_str.split('\n')[-2]:
+            git_hash_dict[tag_num] = hash_str.split('\n')[-4]
+        else:
+            git_hash_dict[tag_num] = hash_str.split('\n')[-2]
+        # ↓test print
 #        print(git_hash_dict[tag_num])
 #        print("---split---")
+
+    # git showコマンドによってAuther_dateを取得
+    for tag_num in range(0, len(git_tag_dict) - 1):
+        proc_adate = subprocess.Popen(['git', 'show', '-s', '--format=%ad', git_tag_dict[tag_num]], cwd='./hadoop/',
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        adate_byte = proc_adate.communicate()
+        adate_str = adate_byte[0].decode('utf-8')
+        # warning対策
+        if 'warning: you may want to set your diff.renameLimit variable' in adate_str.split('\n')[-2]:
+            git_autherdate_dict[tag_num] = adate_str.split('\n')[-4]
+        else:
+            git_autherdate_dict[tag_num] = adate_str.split('\n')[-2]
+#        print(adate_str.split('\n'))
+        # ↓test print
+        print(git_autherdate_dict[tag_num])
+        print("---split---")
 
 
 
