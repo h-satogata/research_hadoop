@@ -20,18 +20,17 @@ def make_dictionary_releasedate():
     print(tag_str.split('\n'))
     print(tag_str.split('\n')[0])  # これでタグの要素１つだけ取り出せる
 
-    for git_tag in git_tag:
-        print(git_tag)
-        print('loop')
+    # git showコマンドによってgit hashを取得
+    for tag_num in range(0, len(tag_str.split('\n'))-1):
+        proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', tag_str.split('\n')[tag_num]], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        hash_byte = proc_hash.communicate()
+        hash_str = hash_byte[0].decode('utf-8')
+        git_hash_dict[tag_num] = hash_str.split('\n')[-2]
+        # ↓testcode
+#        print(git_hash_dict[tag_num])
+#        print("---split---")
 
-#    for line in git_tag:
-#        print(git_tag[line])
-#        print(line)
-#    print(git_tag.stdout)
-    print(2)
 
-    for line_tag in git_tag:
-        git_hash_dict[line_tag] = subprocess.Popen(['git', 'log', '--oneline ', git_tag])
 
     for line in git_hash_dict:
         result_dict[line] = subprocess.Popen(['git', 'show ', git_hash_dict[line_tag]])
