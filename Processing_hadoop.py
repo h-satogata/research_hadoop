@@ -2,6 +2,7 @@ import subprocess
 
 
 def make_dictionary_releasedate():
+    git_tag_dict = {}
     git_hash_dict = {}
     result_dict = {}
 
@@ -17,12 +18,15 @@ def make_dictionary_releasedate():
     proc_tag = subprocess.Popen(['git', 'tag'], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     tag_byte = proc_tag.communicate()
     tag_str = tag_byte[0].decode('utf-8')
-    print(tag_str.split('\n'))
-    print(tag_str.split('\n')[0])  # これでタグの要素１つだけ取り出せる
+    for tag_num in range(0, len(tag_str.split('\n'))-1):
+        git_tag_dict[tag_num] = tag_str.split('\n')[tag_num]
+    # ↓testcode
+#    print(tag_str.split('\n'))
+#    print(tag_str.split('\n')[0])  # これでタグの要素１つだけ取り出せる
 
     # git showコマンドによってgit hashを取得
-    for tag_num in range(0, len(tag_str.split('\n'))-1):
-        proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', tag_str.split('\n')[tag_num]], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for tag_num in range(0, len(git_tag_dict)-1):
+        proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', git_tag_dict[tag_num]], cwd='./hadoop/', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         hash_byte = proc_hash.communicate()
         hash_str = hash_byte[0].decode('utf-8')
         git_hash_dict[tag_num] = hash_str.split('\n')[-2]
