@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/bazel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/camel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/hadoop" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/hadoop/hadoop" vcs="Git" />
+  </component>
+</project>
