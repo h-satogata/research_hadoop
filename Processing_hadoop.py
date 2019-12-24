@@ -7,7 +7,7 @@ cursor = conn.cursor()
 def make_dictionary_releasedate():
     git_tag_dict = {}
     git_hash_dict = {}
-    git_autherdate_dict = {}
+    git_authordate_dict = {}
     result_dict = {}
 
     # 通った(test block)
@@ -28,9 +28,12 @@ def make_dictionary_releasedate():
     # ↓testcode
 #    print(tag_str.split('\n'))
 #    print(tag_str.split('\n')[0])  # これでタグの要素１つだけ取り出せる
+#    for test_num in range(0, len(git_tag_dict)):
+#        print(git_tag_dict[test_num])
+#        print("---split---%d", test_num)
 
     # git showコマンドによってgit hashを取得
-    for tag_num in range(0, len(git_tag_dict)-1):
+    for tag_num in range(0, len(git_tag_dict)):
         proc_hash = subprocess.Popen(['git', 'show', '-s', '--format=%H', git_tag_dict[tag_num]], cwd='./hadoop/',
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         hash_byte = proc_hash.communicate()
@@ -44,33 +47,50 @@ def make_dictionary_releasedate():
 #        print(git_hash_dict[tag_num])
 #        print("---split---")
 
+#    print(len(git_tag_dict))
     # git showコマンドによってAuther_dateを取得
-    for tag_num in range(0, len(git_tag_dict) - 1):
+    for tag_num in range(0, len(git_tag_dict)):
         proc_adate = subprocess.Popen(['git', 'show', '-s', '--format=%ad', git_tag_dict[tag_num]], cwd='./hadoop/',
                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         adate_byte = proc_adate.communicate()
         adate_str = adate_byte[0].decode('utf-8')
         # warning対策
         if 'warning: you may want to set your diff.renameLimit variable' in adate_str.split('\n')[-2]:
-            git_autherdate_dict[tag_num] = adate_str.split('\n')[-4]
+            git_authordate_dict[tag_num] = adate_str.split('\n')[-4]
         else:
-            git_autherdate_dict[tag_num] = adate_str.split('\n')[-2]
+            git_authordate_dict[tag_num] = adate_str.split('\n')[-2]
 #        print(adate_str.split('\n'))
         # ↓test print
-#        print(git_autherdate_dict[tag_num])
-#        print("---split---")
-#    print(type(git_autherdate_dict))
+#        print(git_authordate_dict[tag_num])
+#        print("---split---%d", tag_num)
+#    print(type(git_authordate_dict))
+
+    create_db(git_tag_dict, git_hash_dict, git_authordate_dict)
 
 
     return result_dict
 
-def create_db():
+def create_db(tag_dict, hash_dict, authordate_dict):
+    try:
+        cursor.execute("DROP TABLE IF EXISTS hadoop_hash_tag_date")
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS hadoop_hash_tag_date (hash TEXT, tag TEXT PRIMARY KEY, author_date TEXT)")
+
+        key_list = sorted(list(hash_dict.keys()))
+#        print(len(hash_dict))
+#        print(len(set([hash_dict[key] for key in key_list])))
+        data = [{'hash': hash_dict[key], 'tag': tag_dict[key], 'author_date': authordate_dict[key]} for key in key_list]
+        cursor.executemany("INSERT INTO hadoop_hash_tag_date VALUES (:hash, :tag, :author_date)",
+                            data)
+
+    except sqlite3.Error as e:
+        print('sqlite3.Error occurred:', e.args[0])
 
 
-def print_git():
-    print_dict = make_dictionary_releasedate()
 
-    for print_dict in print_dict:
-        print(print_dict)
+make_dictionary_releasedate()
 
-print_git()
+conn.commit()
+
+# 接続を閉じる
+conn.close()
