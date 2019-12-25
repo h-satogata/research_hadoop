@@ -2,7 +2,8 @@ import sqlite3
 
 conn_1 = sqlite3.connect('hadoop_hash_tag_date.db')
 cursor_1 = conn_1.cursor()
-conn_2 = sqlite3.connect('')
+conn_2 = sqlite3.connect('hadoop.db')
+cursor_2 = conn_2.cursor()
 
 def slice_db():
     # 行数を獲得する

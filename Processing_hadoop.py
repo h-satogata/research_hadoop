@@ -8,6 +8,7 @@ def make_dictionary_releasedate():
     git_tag_dict = {}
     git_hash_dict = {}
     git_authordate_dict = {}
+    git_authordate_unixtimestamp_dict = {}
     result_dict = {}
 
     # 通った(test block)
@@ -26,7 +27,7 @@ def make_dictionary_releasedate():
     for tag_num in range(0, len(tag_str.split('\n'))-1):
         git_tag_dict[tag_num] = tag_str.split('\n')[tag_num]
     # ↓testcode
-#    print(tag_str.split('\n'))
+    print(tag_str.split('\n'))
 #    print(tag_str.split('\n')[0])  # これでタグの要素１つだけ取り出せる
 #    for test_num in range(0, len(git_tag_dict)):
 #        print(git_tag_dict[test_num])
@@ -65,23 +66,38 @@ def make_dictionary_releasedate():
 #        print("---split---%d", tag_num)
 #    print(type(git_authordate_dict))
 
-    create_db(git_tag_dict, git_hash_dict, git_authordate_dict)
+    # git showコマンドによってAuther_dateを取得
+    for tag_num in range(0, len(git_tag_dict)):
+        proc_unixtimestamp = subprocess.Popen(['git', 'show', '-s', '--format=%at', git_tag_dict[tag_num]], cwd='./hadoop/',
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        unixtimestamp_byte = proc_unixtimestamp.communicate()
+        unixtimestamp_str = unixtimestamp_byte[0].decode('utf-8')
+        # warning対策
+        if 'warning: you may want to set your diff.renameLimit variable' in unixtimestamp_str.split('\n')[-2]:
+            git_authordate_unixtimestamp_dict[tag_num] = unixtimestamp_str.split('\n')[-4]
+        else:
+            git_authordate_unixtimestamp_dict[tag_num] = unixtimestamp_str.split('\n')[-2]
+
+
+    create_db(git_tag_dict, git_hash_dict, git_authordate_dict, git_authordate_unixtimestamp_dict)
 
 
     return result_dict
 
-def create_db(tag_dict, hash_dict, authordate_dict):
+def create_db(tag_dict, hash_dict, authordate_dict, unixtimestamp_dict):
     try:
         cursor.execute("DROP TABLE IF EXISTS hadoop_hash_tag_date")
         cursor.execute(
-            "CREATE TABLE IF NOT EXISTS hadoop_hash_tag_date (hash TEXT, tag TEXT PRIMARY KEY, author_date TEXT)")
+            "CREATE TABLE IF NOT EXISTS hadoop_hash_tag_date (hash TEXT, tag TEXT PRIMARY KEY, author_date TEXT,"
+            " author_date_unix_timestamp TEXT)")
 
         key_list = sorted(list(hash_dict.keys()))
 #        print(len(hash_dict))
 #        print(len(set([hash_dict[key] for key in key_list])))
-        data = [{'hash': hash_dict[key], 'tag': tag_dict[key], 'author_date': authordate_dict[key]} for key in key_list]
-        cursor.executemany("INSERT INTO hadoop_hash_tag_date VALUES (:hash, :tag, :author_date)",
-                            data)
+        data = [{'hash': hash_dict[key], 'tag': tag_dict[key], 'author_date': authordate_dict[key],
+                 'author_date_unix_timestamp': unixtimestamp_dict[key]} for key in key_list]
+        cursor.executemany("INSERT INTO hadoop_hash_tag_date VALUES (:hash, :tag, :author_date,"
+                           " :author_date_unix_timestamp)", data)
 
     except sqlite3.Error as e:
         print('sqlite3.Error occurred:', e.args[0])
