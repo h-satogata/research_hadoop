@@ -18,10 +18,10 @@ def slice_db():
 
     # 1つ目のリリース以前のものにフラグをつける
     try:
-        cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = %d", 1)
+        cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%d'", 1)
         timestamp_target_tuple = cursor_1.fetchone()
         timestamp_target = timestamp_target_tuple[0]
-        cursor_2.execute("UPDATE data SET author_date_flag = '1' WHERE author_date_unix_timestamp < %s"
+        cursor_2.execute("UPDATE data SET author_date_flag = '1' WHERE author_date_unix_timestamp < '%s'"
                          , timestamp_target)
 
     except sqlite3.Error as e:
@@ -31,10 +31,10 @@ def slice_db():
     # dbをリリースごとにフラグをつける。author_date_unix_timestampを用いる
     for loop_num in range(0, column_num):
         try:
-            cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = %d", loop_num+1)
+            cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%d'", loop_num+1)
             timestamp_target_tuple = cursor_1.fetchone()
             timestamp_target = timestamp_target_tuple[0]
-            cursor_2.execute("UPDATE data SET author_date_flag = %d WHERE author_date_unix_timestamp < %s"
+            cursor_2.execute("UPDATE data SET author_date_flag = '%d' WHERE author_date_unix_timestamp < '%s'"
                              , loop_num+1, timestamp_target)
 
         except sqlite3.Error as e:
