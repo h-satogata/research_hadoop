@@ -1,13 +1,14 @@
 import sqlite3
 
-conn = sqlite3.connect('hadoop_hash_tag_date.db')
-cursor = conn.cursor()
+conn_1 = sqlite3.connect('hadoop_hash_tag_date.db')
+cursor_1 = conn_1.cursor()
+conn_2 = sqlite3.connect('')
 
 def slice_db():
     # 行数を獲得する
     try:
-        cursor.execute("SELECT COUNT(tag) FROM hadoop_hash_tag_date")
-        column_num_tuple = cursor.fetchone()
+        cursor_1.execute("SELECT COUNT(tag) FROM hadoop_hash_tag_date")
+        column_num_tuple = cursor_1.fetchone()
         column_num = column_num_tuple[0]
 
     except sqlite3.Error as e:
@@ -17,9 +18,7 @@ def slice_db():
     # dbをリリースごとにスライスする。author_dateを用いる
     for loop_num in range(0, column_num):
         try:
-            cursor.execute("DROP TABLE IF EXISTS hadoop_slice_%s", )
-            cursor.execute(
-                "CREATE TABLE IF NOT EXISTS hadoop_hash_tag_date (hash TEXT, tag TEXT PRIMARY KEY, author_date TEXT)")
+            cursor_1.execute("SELECT tag FROM hadoop_hash_tag_date WHERE ID = %d", column_num)
 
             key_list = sorted(list(hash_dict.keys()))
             #        print(len(hash_dict))
