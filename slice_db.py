@@ -7,6 +7,7 @@ cursor_2 = conn_2.cursor()
 
 def slice_db():
     timestamp_target = ""
+    timestamp_previous = ""
     # 行数を獲得する
     try:
         cursor_1.execute("SELECT COUNT(tag) FROM hadoop_hash_tag_date")
@@ -18,28 +19,32 @@ def slice_db():
 
     # 1つ目のリリース以前のものにフラグをつける
     try:
-        cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%d'", 1)
+        cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%s'" %'1')
         timestamp_target_tuple = cursor_1.fetchone()
         timestamp_target = timestamp_target_tuple[0]
         cursor_2.execute("UPDATE data SET author_date_flag = '1' WHERE author_date_unix_timestamp < '%s'"
-                         , timestamp_target)
+                         % timestamp_target)
 
     except sqlite3.Error as e:
         print('sqlite3.Error occurred:', e.args[0])
+
+    timestamp_previous = timestamp_target
 
 
     # dbをリリースごとにフラグをつける。author_date_unix_timestampを用いる
     for loop_num in range(0, column_num):
         try:
-            cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%d'", loop_num+1)
+            cursor_1.execute("SELECT author_date_unix_timestamp FROM hadoop_hash_tag_date WHERE id = '%s'" % str(loop_num+1))
             timestamp_target_tuple = cursor_1.fetchone()
             timestamp_target = timestamp_target_tuple[0]
-            cursor_2.execute("UPDATE data SET author_date_flag = '%d' WHERE author_date_unix_timestamp < '%s'"
-                             , loop_num+1, timestamp_target)
+#            insert_data = [{'num': loop_num+1, 'timestamp': timestamp_target}]
+            cursor_2.execute("UPDATE data SET author_date_flag = '%d' WHERE '%s' < author_date_unix_timestamp AND "
+                             "author_date_unix_timestamp < '%s'" % (loop_num+1, timestamp_previous, timestamp_target))
 
         except sqlite3.Error as e:
             print('sqlite3.Error occurred:', e.args[0])
 
+        timestamp_previous = timestamp_target
 
 
 slice_db()
